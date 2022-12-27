@@ -1,8 +1,8 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { registerRootComponent } from "expo";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useEffect } from "react";
-import { setBackgroundColorAsync } from "expo-navigation-bar";
+import { useCallback, useEffect } from "react";
+import { setBackgroundColorAsync, setPositionAsync } from "expo-navigation-bar";
 
 import Home from "./routes/Home/Home";
 import Settings from "./routes/Settings/Settings";
@@ -11,8 +11,16 @@ import type { Routes } from "./Routes";
 const Stack = createNativeStackNavigator<Routes>();
 
 function App() {
+  //Sets transparency on android on startup
+  const fixAndroidNavbar = useCallback(async () => {
+    // enables edge-to-edge mode
+    await setPositionAsync("absolute");
+    // transparent backgrounds to see through
+    await setBackgroundColorAsync("transparent");
+  }, []);
+
   useEffect(() => {
-    setBackgroundColorAsync("rgba(0, 0, 0, 0.005)");
+    fixAndroidNavbar();
   });
   return (
     <NavigationContainer>
