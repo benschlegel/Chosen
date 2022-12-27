@@ -1,24 +1,32 @@
+import { NavigationContainer } from "@react-navigation/native";
 import { registerRootComponent } from "expo";
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useEffect } from "react";
+import { setBackgroundColorAsync } from "expo-navigation-bar";
+
+import Home from "./routes/Home/Home";
+import Settings from "./routes/Settings/Settings";
+import type { Routes } from "./Routes";
+
+const Stack = createNativeStackNavigator<Routes>();
 
 function App() {
+  useEffect(() => {
+    setBackgroundColorAsync("rgba(0, 0, 0, 0.005)");
+  });
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ animation: "none" }}>
+        <Stack.Screen
+          name="Home"
+          component={Home}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="Settings" component={Settings} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 registerRootComponent(App);
 export default App;
