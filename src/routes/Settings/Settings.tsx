@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, StyleSheet, View, Text } from "react-native";
 
+import { Ball } from "../../components/Ball/Ball";
 import type { Routes, StackNavigationProps } from "../../Routes";
 
 const Settings = ({ navigation }: StackNavigationProps<Routes, "Settings">) => {
@@ -8,6 +9,7 @@ const Settings = ({ navigation }: StackNavigationProps<Routes, "Settings">) => {
     <View style={styles.container}>
       <Text>Home</Text>
       <Button title="Go to Home" onPress={() => navigation.navigate("Home")} />
+      <Ball />
     </View>
   );
 };

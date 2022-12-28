@@ -3,6 +3,7 @@ import { registerRootComponent } from "expo";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useCallback, useEffect } from "react";
 import { setBackgroundColorAsync, setPositionAsync } from "expo-navigation-bar";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import Home from "./routes/Home/Home";
 import Settings from "./routes/Settings/Settings";
@@ -23,16 +24,18 @@ function App() {
     fixAndroidNavbar();
   });
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ animation: "none" }}>
-        <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="Settings" component={Settings} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ animation: "none" }}>
+          <Stack.Screen
+            name="Home"
+            component={Home}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="Settings" component={Settings} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
 
