@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useCallback, useEffect } from "react";
 import { setBackgroundColorAsync, setPositionAsync } from "expo-navigation-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Platform } from "react-native";
 
 import Home from "./routes/Home/Home";
 import Settings from "./routes/Settings/Settings";
@@ -14,10 +15,12 @@ const Stack = createNativeStackNavigator<Routes>();
 function App() {
   //Sets transparency on android on startup
   const fixAndroidNavbar = useCallback(async () => {
-    // enables edge-to-edge mode
-    await setPositionAsync("absolute");
-    // transparent backgrounds to see through
-    await setBackgroundColorAsync("transparent");
+    if (Platform.OS === "android") {
+      // enables edge-to-edge mode
+      await setPositionAsync("absolute");
+      // transparent backgrounds to see through
+      await setBackgroundColorAsync("transparent");
+    }
   }, []);
 
   useEffect(() => {
