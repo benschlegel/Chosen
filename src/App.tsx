@@ -6,10 +6,9 @@ import { setBackgroundColorAsync, setPositionAsync } from "expo-navigation-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Platform } from "react-native";
 
-import Home from "./routes/Home/Home";
 import Settings from "./routes/Settings/Settings";
-import type { Routes } from "./Routes";
-
+import type { Routes } from "./helpers/Routes";
+import Home from "./routes/Home/Home";
 const Stack = createNativeStackNavigator<Routes>();
 
 function App() {

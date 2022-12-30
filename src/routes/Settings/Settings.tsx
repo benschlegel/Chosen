@@ -2,8 +2,7 @@ import React from "react";
 import { Button, StyleSheet, View, Text } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
-import { Ball } from "../../components/Ball/Ball";
-import type { Routes, StackNavigationProps } from "../../Routes";
+import type { StackNavigationProps, Routes } from "../../helpers/Routes";
 
 const Settings = ({ navigation }: StackNavigationProps<Routes, "Settings">) => {
   const gesture = Gesture.Tap().onStart((e) => {
@@ -17,7 +16,6 @@ const Settings = ({ navigation }: StackNavigationProps<Routes, "Settings">) => {
           title="Go to Home"
           onPress={() => navigation.navigate("Home")}
         />
-        <Ball />
       </View>
     </GestureDetector>
   );

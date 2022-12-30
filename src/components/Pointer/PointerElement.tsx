@@ -1,7 +1,7 @@
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { StyleSheet } from "react-native";
 
-import type { Pointer } from "../../types";
+import type { Pointer } from "../../helpers/types";
 
 export default function PointerElement(props: {
   pointer: Animated.SharedValue<Pointer>;

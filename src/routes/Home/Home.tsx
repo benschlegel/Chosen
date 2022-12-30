@@ -6,10 +6,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { useSharedValue } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
-import type { Routes, StackNavigationProps } from "../../Routes";
 import IconButton from "../../components/Buttons/IconButton";
-import type { Pointer } from "../../types";
-import PointerElement from "../../components/Ball/PointerElement";
+import PointerElement from "../../components/Pointer/PointerElement";
+import type { StackNavigationProps, Routes } from "../../helpers/Routes";
+import type { Pointer } from "../../helpers/types";
 
 const { width, height } = Dimensions.get("screen");
 
@@ -56,7 +56,6 @@ export default function Home({
       }
 
       if (e.numberOfTouches >= 2) {
-        console.log("touches down");
         manager.activate();
       }
     })
