@@ -3,15 +3,19 @@ import { StatusBar } from "expo-status-bar";
 import type { StyleProp, ViewStyle } from "react-native";
 import { Platform, View, StyleSheet, Text, Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { useSharedValue } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  Layout,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import IconButton from "../../components/Buttons/IconButton";
 import PointerElement from "../../components/Pointer/PointerElement";
 import type { StackNavigationProps, Routes } from "../../helpers/Routes";
 import type { Pointer } from "../../helpers/types";
-
-const { width, height } = Dimensions.get("screen");
 
 const orangeGradient = ["#ff9068", "#fd746c"];
 
@@ -21,6 +25,7 @@ const MAX_POINTERS = 12;
 export default function Home({
   navigation,
 }: StackNavigationProps<Routes, "Home">): React.ReactElement {
+  const { width, height } = Dimensions.get("screen");
   //Insets
   const insets = useSafeAreaInsets();
   const headerMarginStyle: StyleProp<ViewStyle> = {
@@ -31,6 +36,12 @@ export default function Home({
     paddingBottom:
       Platform.OS === "android" ? insets.bottom + 10 : insets.bottom + 4,
   };
+
+  //Animated styles
+  const overlayOpacity = useSharedValue(1);
+  const animatedOpacity = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
 
   //Gesture Handling
   const trackedPointers: Animated.SharedValue<Pointer>[] = [];
@@ -58,6 +69,9 @@ export default function Home({
       if (e.numberOfTouches >= 2) {
         manager.activate();
       }
+
+      //Disable overlay as soon as a finger is down and
+      overlayOpacity.value = withTiming(0);
     })
     .onTouchesMove((e, _manager) => {
       for (const touch of e.changedTouches) {
@@ -79,6 +93,7 @@ export default function Home({
 
       if (e.numberOfTouches === 0) {
         manager.end();
+        overlayOpacity.value = withTiming(1);
       }
     })
     .onStart(() => {
@@ -101,27 +116,32 @@ export default function Home({
             />
           </Rect>
         </Canvas>
-        <Animated.View style={styles.absoluteContainer}>
+        <Animated.View style={[styles.absoluteContainer]}>
           {/* Draw Pointers */}
           {trackedPointers.map((pointer, index) => (
             <PointerElement pointer={pointer} active={active} key={index} />
           ))}
-          <View style={[styles.headerContainer, headerMarginStyle]}>
+
+          <Animated.View
+            style={[styles.headerContainer, headerMarginStyle, animatedOpacity]}
+          >
             <Text style={styles.headerText}>Chosen</Text>
-          </View>
-          <View>
+          </Animated.View>
+          <Animated.View style={[animatedOpacity]}>
             <Text style={styles.instructionText}>
               Press anywhere to get started
             </Text>
-          </View>
-          <View style={[styles.footerContainer, footerMarginStyle]}>
+          </Animated.View>
+          <Animated.View
+            style={[styles.footerContainer, footerMarginStyle, animatedOpacity]}
+          >
             <IconButton text="Themes" iconName="md-brush-outline" />
             <IconButton
               text="Settings"
               iconName="md-settings-outline"
               onPress={() => navigation.navigate("Settings")}
             />
-          </View>
+          </Animated.View>
         </Animated.View>
       </View>
     </GestureDetector>

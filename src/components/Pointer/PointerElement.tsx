@@ -1,4 +1,7 @@
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
+} from "react-native-reanimated";
 import { StyleSheet } from "react-native";
 
 import type { Pointer } from "../../helpers/types";
@@ -12,9 +15,10 @@ export default function PointerElement(props: {
       { translateX: props.pointer.value.x },
       { translateY: props.pointer.value.y },
       {
-        scale:
-          (props.pointer.value.visible ? 1 : 0) *
-          (props.active.value ? 1.3 : 1),
+        scale: props.pointer.value.visible
+          ? withSpring(props.active.value ? 1.3 : 1)
+          : withSpring(0, { overshootClamping: true }),
+        // * (props.active.value ? 1.3 : 1),
       },
     ],
     backgroundColor: props.active.value ? "red" : "blue",
