@@ -6,11 +6,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   FadeIn,
   Layout,
+  runOnJS,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import {
+  Gesture,
+  GestureDetector,
+  NativeViewGestureHandler,
+} from "react-native-gesture-handler";
+import { useEffect, useState } from "react";
 
 import IconButton from "../../components/Buttons/IconButton";
 import PointerElement from "../../components/Pointer/PointerElement";
@@ -25,6 +32,8 @@ const MAX_POINTERS = 12;
 export default function Home({
   navigation,
 }: StackNavigationProps<Routes, "Home">): React.ReactElement {
+  const [isGestureActive, setIsGestureActive] = useState(false);
+  const [isDelayTimerDone, setIsDelayTimerDone] = useState(false);
   const { width, height } = Dimensions.get("screen");
   //Insets
   const insets = useSafeAreaInsets();
@@ -43,6 +52,10 @@ export default function Home({
     opacity: overlayOpacity.value,
   }));
 
+  const activeColor = useAnimatedStyle(() => ({
+    backgroundColor: isGestureActive ? "green" : "red",
+  }));
+
   //Gesture Handling
   const trackedPointers: Animated.SharedValue<Pointer>[] = [];
   const active = useSharedValue(false);
@@ -56,8 +69,21 @@ export default function Home({
     });
   }
 
+  // Handle activation of gesture
+  useAnimatedReaction(
+    () => {
+      return active.value;
+    },
+    (currentValue, previousValue) => {
+      if (currentValue !== previousValue) {
+        runOnJS(setIsGestureActive)(currentValue);
+      }
+    }
+  );
+
   const gesture = Gesture.Manual()
     .onTouchesDown((e, manager) => {
+      // TODO: check if changedTouches > 0, then reset timer
       for (const touch of e.changedTouches) {
         trackedPointers[touch.id]!.value = {
           visible: true,
@@ -67,6 +93,7 @@ export default function Home({
       }
 
       if (e.numberOfTouches >= 2) {
+        active.value = true;
         manager.activate();
       }
 
@@ -90,23 +117,28 @@ export default function Home({
           y: touch.y,
         };
       }
-
+      if (e.numberOfTouches < 2) {
+        active.value = false;
+      }
       if (e.numberOfTouches === 0) {
         manager.end();
-        overlayOpacity.value = withTiming(1);
       }
     })
+    // TODO: start and end timer
     .onStart(() => {
-      active.value = true;
+      // active.value = true;
     })
     .onEnd(() => {
-      active.value = false;
+      // active.value = false;
+      overlayOpacity.value = withTiming(1);
     });
 
   return (
     <GestureDetector gesture={gesture}>
       <View style={styles.container}>
         <StatusBar style="light" />
+
+        {/* Background gradient */}
         <Canvas style={styles.canvasContainer}>
           <Rect x={0} y={0} width={width} height={height}>
             <LinearGradient
@@ -116,22 +148,29 @@ export default function Home({
             />
           </Rect>
         </Canvas>
+
         <Animated.View style={[styles.absoluteContainer]}>
           {/* Draw Pointers */}
           {trackedPointers.map((pointer, index) => (
             <PointerElement pointer={pointer} active={active} key={index} />
           ))}
 
+          {/* Header */}
           <Animated.View
             style={[styles.headerContainer, headerMarginStyle, animatedOpacity]}
           >
             <Text style={styles.headerText}>Chosen</Text>
           </Animated.View>
+
+          {/* Center instruction text */}
           <Animated.View style={[animatedOpacity]}>
             <Text style={styles.instructionText}>
-              Place at least 2 fingers to get started
+              Place at least 2 fingers on the screen to get started
             </Text>
           </Animated.View>
+
+          {/* Footer */}
+          <Animated.View style={[activeColor, { width: "100%", height: 10 }]} />
           <Animated.View
             style={[styles.footerContainer, footerMarginStyle, animatedOpacity]}
           >
@@ -178,6 +217,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     color: "white",
     textAlign: "center",
-    fontSize: 18,
+    fontSize: 20,
+    paddingHorizontal: 30,
   },
 });

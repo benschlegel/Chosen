@@ -25,7 +25,7 @@ const IconButton = ({
 
   return (
     <TouchableOpacity style={styles.buttonContainer} onPress={onPress}>
-      <View style={styles.iconContainer}>
+      <View style={styles.iconContainer} accessible accessibilityRole="button">
         <Ionicons name={iconName} size={size} color={color} />
       </View>
       <Text style={[styles.buttonText, textColorStyle]}>{text}</Text>
