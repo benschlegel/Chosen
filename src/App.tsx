@@ -17,8 +17,8 @@ function App() {
     if (Platform.OS === "android") {
       // enables edge-to-edge mode
       await setPositionAsync("absolute");
-      // transparent backgrounds to see through
-      await setBackgroundColorAsync("transparent");
+      // transparent backgrounds to see through, only this specific value is fully transparent on android
+      await setBackgroundColorAsync("rgba(0, 0, 0, 0.005)");
     }
   }, []);
 

@@ -129,7 +129,7 @@ export default function Home({
           </Animated.View>
           <Animated.View style={[animatedOpacity]}>
             <Text style={styles.instructionText}>
-              Press anywhere to get started
+              Place at least 2 fingers to get started
             </Text>
           </Animated.View>
           <Animated.View
