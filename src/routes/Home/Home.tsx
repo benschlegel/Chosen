@@ -23,7 +23,7 @@ import IconButton from "../../components/Buttons/IconButton";
 import PointerElement from "../../components/Pointer/PointerElement";
 import type { StackNavigationProps, Routes } from "../../helpers/Routes";
 import type { Pointer } from "../../helpers/types";
-import { setArray } from "../../helpers/stateHelpers";
+import { setArray, setArrayWorklet } from "../../helpers/stateHelpers";
 
 const orangeGradient = ["#ff9068", "#fd746c"];
 
@@ -143,12 +143,16 @@ export default function Home({
         //   x: 3,
         // });
 
-        trackedPointers.value = trackedPointers.value.map((v, i) =>
-          i === touch.id
-            ? { ...v, ...{ x: touch.x, y: touch.y, visible: true } }
-            : v
+        // trackedPointers.value = trackedPointers.value.map((v, i) =>
+        //   i === touch.id
+        //     ? { ...v, ...{ x: touch.x, y: touch.y, visible: true } }
+        //     : v
+        // );
+        trackedPointers.value = setArrayWorklet(
+          trackedPointers.value,
+          touch.id,
+          { x: touch.x, y: touch.y, visible: true }
         );
-        console.log("newPointers: ", trackedPointers.value);
 
         // runOnJS(console.log)(newArr);
 
@@ -182,6 +186,11 @@ export default function Home({
         //   x: touch.x,
         //   y: touch.y,
         // });
+        trackedPointers.value = setArrayWorklet(
+          trackedPointers.value,
+          touch.id,
+          { x: touch.x, y: touch.y, visible: true }
+        );
       }
     })
     .onTouchesUp((e, manager) => {
@@ -191,6 +200,11 @@ export default function Home({
         //   x: touch.x,
         //   y: touch.y,
         // });
+        trackedPointers.value = setArrayWorklet(
+          trackedPointers.value,
+          touch.id,
+          { x: touch.x, y: touch.y, visible: false }
+        );
       }
       if (e.numberOfTouches < 2) {
         active.value = false;
