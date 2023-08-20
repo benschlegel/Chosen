@@ -6,22 +6,38 @@ import { StyleSheet } from "react-native";
 
 import type { Pointer } from "../../helpers/types";
 
-export default function PointerElement(props: {
-  pointer: Animated.SharedValue<Pointer>;
-  active: Animated.SharedValue<boolean>;
-}) {
+type PointerElementProps = {
+  pointer: Pointer;
+  isActive: Animated.SharedValue<boolean>;
+  isPicking: boolean;
+};
+
+export default function PointerElement({
+  pointer,
+  isActive,
+  isPicking,
+}: PointerElementProps) {
+  let backgroundColor = "blue";
+  if (isActive) {
+    backgroundColor = "red";
+    if (isPicking) {
+      backgroundColor = "green";
+    }
+  } else {
+    backgroundColor = "blue";
+  }
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: props.pointer.value.x },
-      { translateY: props.pointer.value.y },
+      { translateX: pointer.x },
+      { translateY: pointer.y },
       {
-        scale: props.pointer.value.visible
-          ? withSpring(props.active.value ? 1.3 : 1)
+        scale: pointer.visible
+          ? withSpring(isActive.value ? 1.3 : 1)
           : withSpring(0, { overshootClamping: true }),
-        // * (props.active.value ? 1.3 : 1),
+        // * (active.value ? 1.3 : 1),
       },
     ],
-    backgroundColor: props.active.value ? "red" : "blue",
+    backgroundColor: pointer.isWinner ? "purple" : backgroundColor,
   }));
 
   return <Animated.View style={[styles.pointer, animatedStyle]} />;

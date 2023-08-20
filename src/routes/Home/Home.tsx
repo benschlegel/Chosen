@@ -17,12 +17,13 @@ import {
   GestureDetector,
   NativeViewGestureHandler,
 } from "react-native-gesture-handler";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import IconButton from "../../components/Buttons/IconButton";
 import PointerElement from "../../components/Pointer/PointerElement";
 import type { StackNavigationProps, Routes } from "../../helpers/Routes";
 import type { Pointer } from "../../helpers/types";
+import { setArray } from "../../helpers/stateHelpers";
 
 const orangeGradient = ["#ff9068", "#fd746c"];
 
@@ -32,8 +33,74 @@ const MAX_POINTERS = 12;
 export default function Home({
   navigation,
 }: StackNavigationProps<Routes, "Home">): React.ReactElement {
+  // Initialize tracking pointers
+  const trackedPointers: Animated.SharedValue<Pointer[]> = useSharedValue([]);
+  const active = useSharedValue(false);
+
+  // const resetPoints = useCallback(() => {
+  // }, [trackedPointers]);
+  const tempArray: Pointer[] = [];
+  for (let i = 0; i < MAX_POINTERS; i++) {
+    tempArray.push({
+      visible: false,
+      x: 0,
+      y: 0,
+      isWinner: false,
+    });
+  }
+  trackedPointers.value = tempArray;
+  // useEffect(() => {
+  //   console.log("Reset points 2: ", trackedPointers.value);
+  // }, []);
+
+  //Gesture Handling
   const [isGestureActive, setIsGestureActive] = useState(false);
+  const [isPickerStarted, setIsPickerStarted] = useState(false);
   const [isDelayTimerDone, setIsDelayTimerDone] = useState(false);
+  const [delayTimerId, setDelayTimerId] = useState<NodeJS.Timeout>();
+
+  const pickWinner = useCallback(() => {
+    const visibleIndex: number[] = [];
+    // Filter indizes of valid and visible pointers, also reset isWinner on every object
+    for (let i = 0; i < trackedPointers.value.length; i++) {
+      if (trackedPointers.value[i]!.visible) {
+        visibleIndex.push(i);
+      }
+    }
+
+    const randomIndex = Math.floor(Math.random() * visibleIndex.length);
+    if (trackedPointers.value[randomIndex]) {
+      trackedPointers.value[randomIndex] = {
+        ...trackedPointers.value[randomIndex]!,
+        isWinner: true,
+      };
+      // trackedPointers[randomIndex]?.value = {isWinner...}
+    }
+    // if (visiblePointers[randomIndex] && visiblePointers[randomIndex]?.value) {
+    // }
+  }, [trackedPointers]);
+
+  useEffect(() => {
+    if (isPickerStarted) {
+      pickWinner();
+    }
+  }, [isPickerStarted, pickWinner]);
+
+  const handleDelayFinish = useCallback(() => {
+    setIsPickerStarted(true);
+  }, []);
+
+  const resetOrStartTimer = useCallback(() => {
+    clearTimeout(delayTimerId);
+    setIsPickerStarted(false);
+    const newTimerId = setTimeout(handleDelayFinish, 1500);
+    setDelayTimerId(newTimerId);
+  }, [delayTimerId, handleDelayFinish]);
+
+  const clearTimer = useCallback(() => {
+    clearTimeout(delayTimerId);
+  }, [delayTimerId]);
+
   const { width, height } = Dimensions.get("screen");
   //Insets
   const insets = useSafeAreaInsets();
@@ -56,19 +123,6 @@ export default function Home({
     backgroundColor: isGestureActive ? "green" : "red",
   }));
 
-  //Gesture Handling
-  const trackedPointers: Animated.SharedValue<Pointer>[] = [];
-  const active = useSharedValue(false);
-
-  for (let i = 0; i < MAX_POINTERS; i++) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    trackedPointers[i] = useSharedValue<Pointer>({
-      visible: false,
-      x: 0,
-      y: 0,
-    });
-  }
-
   // Handle activation of gesture
   useAnimatedReaction(
     () => {
@@ -83,17 +137,38 @@ export default function Home({
 
   const gesture = Gesture.Manual()
     .onTouchesDown((e, manager) => {
-      // TODO: check if changedTouches > 0, then reset timer
+      // console.log("Pointers: ", trackedPointers.value);
       for (const touch of e.changedTouches) {
-        trackedPointers[touch.id]!.value = {
-          visible: true,
-          x: touch.x,
-          y: touch.y,
-        };
+        // const newArr = runOnJS(setArray)(trackedPointers.value, touch.id, {
+        //   x: 3,
+        // });
+
+        trackedPointers.value = trackedPointers.value.map((v, i) =>
+          i === touch.id
+            ? { ...v, ...{ x: touch.x, y: touch.y, visible: true } }
+            : v
+        );
+        console.log("newPointers: ", trackedPointers.value);
+
+        // runOnJS(console.log)(newArr);
+
+        // setArray(trackedPointers.value, touch.id, {
+        //   visible: true,
+        //   x: touch.x,
+        //   y: touch.y,
+        // });
+        // trackedPointers.value[touch.id]! = {
+        //   ...trackedPointers.value[touch.id]!,
+        //   visible: true,
+        //   x: touch.x,
+        //   y: touch.y,
+        // };
       }
 
       if (e.numberOfTouches >= 2) {
         active.value = true;
+        // Reset timer if more fingers are placed
+        runOnJS(resetOrStartTimer)();
         manager.activate();
       }
 
@@ -102,26 +177,31 @@ export default function Home({
     })
     .onTouchesMove((e, _manager) => {
       for (const touch of e.changedTouches) {
-        trackedPointers[touch.id]!.value = {
-          visible: true,
-          x: touch.x,
-          y: touch.y,
-        };
+        // trackedPointers.value = setArray(trackedPointers.value, touch.id, {
+        //   visible: true,
+        //   x: touch.x,
+        //   y: touch.y,
+        // });
       }
     })
     .onTouchesUp((e, manager) => {
       for (const touch of e.changedTouches) {
-        trackedPointers[touch.id]!.value = {
-          visible: false,
-          x: touch.x,
-          y: touch.y,
-        };
+        // trackedPointers.value = setArray(trackedPointers.value, touch.id, {
+        //   visible: true,
+        //   x: touch.x,
+        //   y: touch.y,
+        // });
       }
       if (e.numberOfTouches < 2) {
         active.value = false;
       }
       if (e.numberOfTouches === 0) {
         manager.end();
+        overlayOpacity.value = withTiming(1);
+      }
+
+      if (e.numberOfTouches >= 2) {
+        runOnJS(resetOrStartTimer)();
       }
     })
     // TODO: start and end timer
@@ -130,7 +210,8 @@ export default function Home({
     })
     .onEnd(() => {
       // active.value = false;
-      overlayOpacity.value = withTiming(1);
+      runOnJS(clearTimer)();
+      runOnJS(setIsPickerStarted)(false);
     });
 
   return (
@@ -151,8 +232,13 @@ export default function Home({
 
         <Animated.View style={[styles.absoluteContainer]}>
           {/* Draw Pointers */}
-          {trackedPointers.map((pointer, index) => (
-            <PointerElement pointer={pointer} active={active} key={index} />
+          {trackedPointers.value.map((pointer, index) => (
+            <PointerElement
+              pointer={pointer}
+              isActive={active}
+              key={index}
+              isPicking={isPickerStarted}
+            />
           ))}
 
           {/* Header */}
