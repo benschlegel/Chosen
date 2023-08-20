@@ -3,7 +3,6 @@
     "name": "chosen",
     "slug": "chosen",
     "version": "1.0.0",
-    "entryPoint": "./src/App.tsx",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "jsEngine": "hermes",
