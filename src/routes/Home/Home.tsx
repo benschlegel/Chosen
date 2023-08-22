@@ -23,7 +23,6 @@ import IconButton from "../../components/Buttons/IconButton";
 import PointerElement from "../../components/Pointer/PointerElement";
 import type { StackNavigationProps, Routes } from "../../helpers/Routes";
 import type { Pointer } from "../../helpers/types";
-import { setArray, setArrayWorklet } from "../../helpers/stateHelpers";
 
 const orangeGradient = ["#ff9068", "#fd746c"];
 
@@ -34,57 +33,51 @@ export default function Home({
   navigation,
 }: StackNavigationProps<Routes, "Home">): React.ReactElement {
   // Initialize tracking pointers
-  const trackedPointers: Animated.SharedValue<Pointer[]> = useSharedValue([]);
+  const trackedPointers: Animated.SharedValue<Pointer>[] = [];
   const active = useSharedValue(false);
 
-  // const resetPoints = useCallback(() => {
-  // }, [trackedPointers]);
-  const tempArray: Pointer[] = [];
+  // Hook can be used inside loop since max pointers is static and logic is deterministic/fixed order
   for (let i = 0; i < MAX_POINTERS; i++) {
-    tempArray.push({
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    trackedPointers[i] = useSharedValue<Pointer>({
       visible: false,
+      isWinner: false,
       x: 0,
       y: 0,
-      isWinner: false,
     });
   }
-  trackedPointers.value = tempArray;
-  // useEffect(() => {
-  //   console.log("Reset points 2: ", trackedPointers.value);
-  // }, []);
-
   //Gesture Handling
   const [isGestureActive, setIsGestureActive] = useState(false);
   const [isPickerStarted, setIsPickerStarted] = useState(false);
   const [isDelayTimerDone, setIsDelayTimerDone] = useState(false);
   const [delayTimerId, setDelayTimerId] = useState<NodeJS.Timeout>();
 
-  const pickWinner = useCallback(() => {
-    const visibleIndex: number[] = [];
-    // Filter indizes of valid and visible pointers, also reset isWinner on every object
-    for (let i = 0; i < trackedPointers.value.length; i++) {
-      if (trackedPointers.value[i]!.visible) {
-        visibleIndex.push(i);
-      }
-    }
+  // const pickWinner = useCallback(() => {
+  //   const visibleIndex: number[] = [];
+  //   // Filter indizes of valid and visible pointers, also reset isWinner on every object
+  //   for (let i = 0; i < trackedPointers.value.length; i++) {
+  //     if (trackedPointers.value[i]!.visible) {
+  //       visibleIndex.push(i);
+  //     }
+  //   }
 
-    const randomIndex = Math.floor(Math.random() * visibleIndex.length);
-    if (trackedPointers.value[randomIndex]) {
-      trackedPointers.value[randomIndex] = {
-        ...trackedPointers.value[randomIndex]!,
-        isWinner: true,
-      };
-      // trackedPointers[randomIndex]?.value = {isWinner...}
-    }
-    // if (visiblePointers[randomIndex] && visiblePointers[randomIndex]?.value) {
-    // }
-  }, [trackedPointers]);
+  //   const randomIndex = Math.floor(Math.random() * visibleIndex.length);
+  //   if (trackedPointers.value[randomIndex]) {
+  //     trackedPointers.value[randomIndex] = {
+  //       ...trackedPointers.value[randomIndex]!,
+  //       isWinner: true,
+  //     };
+  //     // trackedPointers[randomIndex]?.value = {isWinner...}
+  //   }
+  //   // if (visiblePointers[randomIndex] && visiblePointers[randomIndex]?.value) {
+  //   // }
+  // }, [trackedPointers]);
 
-  useEffect(() => {
-    if (isPickerStarted) {
-      pickWinner();
-    }
-  }, [isPickerStarted, pickWinner]);
+  // useEffect(() => {
+  //   if (isPickerStarted) {
+  //     pickWinner();
+  //   }
+  // }, [isPickerStarted, pickWinner]);
 
   const handleDelayFinish = useCallback(() => {
     setIsPickerStarted(true);
@@ -137,36 +130,13 @@ export default function Home({
 
   const gesture = Gesture.Manual()
     .onTouchesDown((e, manager) => {
-      // console.log("Pointers: ", trackedPointers.value);
       for (const touch of e.changedTouches) {
-        // const newArr = runOnJS(setArray)(trackedPointers.value, touch.id, {
-        //   x: 3,
-        // });
-
-        // trackedPointers.value = trackedPointers.value.map((v, i) =>
-        //   i === touch.id
-        //     ? { ...v, ...{ x: touch.x, y: touch.y, visible: true } }
-        //     : v
-        // );
-        trackedPointers.value = setArrayWorklet(
-          trackedPointers.value,
-          touch.id,
-          { x: touch.x, y: touch.y, visible: true }
-        );
-
-        // runOnJS(console.log)(newArr);
-
-        // setArray(trackedPointers.value, touch.id, {
-        //   visible: true,
-        //   x: touch.x,
-        //   y: touch.y,
-        // });
-        // trackedPointers.value[touch.id]! = {
-        //   ...trackedPointers.value[touch.id]!,
-        //   visible: true,
-        //   x: touch.x,
-        //   y: touch.y,
-        // };
+        trackedPointers[touch.id]!.value = {
+          visible: true,
+          isWinner: false,
+          x: touch.x,
+          y: touch.y,
+        };
       }
 
       if (e.numberOfTouches >= 2) {
@@ -181,31 +151,24 @@ export default function Home({
     })
     .onTouchesMove((e, _manager) => {
       for (const touch of e.changedTouches) {
-        // trackedPointers.value = setArray(trackedPointers.value, touch.id, {
-        //   visible: true,
-        //   x: touch.x,
-        //   y: touch.y,
-        // });
-        trackedPointers.value = setArrayWorklet(
-          trackedPointers.value,
-          touch.id,
-          { x: touch.x, y: touch.y, visible: true }
-        );
+        trackedPointers[touch.id]!.value = {
+          ...trackedPointers[touch.id]!.value,
+          visible: true,
+          x: touch.x,
+          y: touch.y,
+        };
       }
     })
     .onTouchesUp((e, manager) => {
       for (const touch of e.changedTouches) {
-        // trackedPointers.value = setArray(trackedPointers.value, touch.id, {
-        //   visible: true,
-        //   x: touch.x,
-        //   y: touch.y,
-        // });
-        trackedPointers.value = setArrayWorklet(
-          trackedPointers.value,
-          touch.id,
-          { x: touch.x, y: touch.y, visible: false }
-        );
+        trackedPointers[touch.id]!.value = {
+          visible: false,
+          isWinner: false,
+          x: touch.x,
+          y: touch.y,
+        };
       }
+
       if (e.numberOfTouches < 2) {
         active.value = false;
       }
@@ -246,7 +209,7 @@ export default function Home({
 
         <Animated.View style={[styles.absoluteContainer]}>
           {/* Draw Pointers */}
-          {trackedPointers.value.map((pointer, index) => (
+          {trackedPointers.map((pointer, index) => (
             <PointerElement
               pointer={pointer}
               isActive={active}

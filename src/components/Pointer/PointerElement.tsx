@@ -1,3 +1,4 @@
+import type { SharedValue } from "react-native-reanimated";
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -7,8 +8,8 @@ import { StyleSheet } from "react-native";
 import type { Pointer } from "../../helpers/types";
 
 type PointerElementProps = {
-  pointer: Pointer;
-  isActive: Animated.SharedValue<boolean>;
+  pointer: SharedValue<Pointer>;
+  isActive: SharedValue<boolean>;
   isPicking: boolean;
 };
 
@@ -17,6 +18,7 @@ export default function PointerElement({
   isActive,
   isPicking,
 }: PointerElementProps) {
+  // console.log("x in pointer: ", pointer.x);
   let backgroundColor = "blue";
   if (isActive) {
     backgroundColor = "red";
@@ -28,16 +30,16 @@ export default function PointerElement({
   }
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: pointer.x },
-      { translateY: pointer.y },
+      { translateX: pointer.value.x },
+      { translateY: pointer.value.y },
       {
-        scale: pointer.visible
+        scale: pointer.value.visible
           ? withSpring(isActive.value ? 1.3 : 1)
           : withSpring(0, { overshootClamping: true }),
         // * (active.value ? 1.3 : 1),
       },
     ],
-    backgroundColor: pointer.isWinner ? "purple" : backgroundColor,
+    backgroundColor: pointer.value.isWinner ? "purple" : backgroundColor,
   }));
 
   return <Animated.View style={[styles.pointer, animatedStyle]} />;
