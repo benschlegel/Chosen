@@ -52,32 +52,31 @@ export default function Home({
   const [isDelayTimerDone, setIsDelayTimerDone] = useState(false);
   const [delayTimerId, setDelayTimerId] = useState<NodeJS.Timeout>();
 
-  // const pickWinner = useCallback(() => {
-  //   const visibleIndex: number[] = [];
-  //   // Filter indizes of valid and visible pointers, also reset isWinner on every object
-  //   for (let i = 0; i < trackedPointers.value.length; i++) {
-  //     if (trackedPointers.value[i]!.visible) {
-  //       visibleIndex.push(i);
-  //     }
-  //   }
+  const pickWinner = useCallback(() => {
+    const visibleIndex: number[] = [];
+    // Filter indizes of valid and visible pointers, also reset isWinner on every object
+    for (let i = 0; i < trackedPointers.length; i++) {
+      if (trackedPointers[i]!.value.visible) {
+        visibleIndex.push(i);
+      }
+    }
 
-  //   const randomIndex = Math.floor(Math.random() * visibleIndex.length);
-  //   if (trackedPointers.value[randomIndex]) {
-  //     trackedPointers.value[randomIndex] = {
-  //       ...trackedPointers.value[randomIndex]!,
-  //       isWinner: true,
-  //     };
-  //     // trackedPointers[randomIndex]?.value = {isWinner...}
-  //   }
-  //   // if (visiblePointers[randomIndex] && visiblePointers[randomIndex]?.value) {
-  //   // }
-  // }, [trackedPointers]);
+    // Pick item and update it
+    const randomIndex = Math.floor(Math.random() * visibleIndex.length);
+    const currItem = trackedPointers[randomIndex];
+    if (currItem) {
+      currItem.value = {
+        ...currItem.value,
+        isWinner: true,
+      };
+    }
+  }, [trackedPointers]);
 
-  // useEffect(() => {
-  //   if (isPickerStarted) {
-  //     pickWinner();
-  //   }
-  // }, [isPickerStarted, pickWinner]);
+  useEffect(() => {
+    if (isPickerStarted) {
+      pickWinner();
+    }
+  }, [isPickerStarted, pickWinner]);
 
   const handleDelayFinish = useCallback(() => {
     setIsPickerStarted(true);
